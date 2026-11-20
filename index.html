@@ -1,1 +1,1435 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trias Ludi - Educatief Spellen Platform</title>
+    <!-- Tailwind CSS voor responsive en moderne styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome voor iconen -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f7f3e9;
+            background-image: radial-gradient(#e5d9c5 1.2px, transparent 1.2px);
+            background-size: 24px 24px;
+        }
+        h1, h2, h3, .font-heading {
+            font-family: 'Fredoka', cursive;
+        }
+        .font-serif-title {
+            font-family: 'Cinzel', serif;
+        }
+
+        /* 3D Perspectief voor geheugenkaarten */
+        .card-perspective {
+            perspective: 1000px;
+        }
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 0.85rem;
+        }
+
+        .card-front {
+            background: linear-gradient(145deg, #2c1a0e 0%, #4a2e1b 50%, #1a0f08 100%);
+            border: 3px solid #d4af37;
+            box-shadow: inset 0 0 12px rgba(212, 175, 55, 0.4), 0 4px 10px rgba(0,0,0,0.25);
+        }
+        .card-front-inner {
+            border: 1px dashed rgba(212, 175, 55, 0.6);
+            height: calc(100% - 10px);
+            margin: 5px;
+            border-radius: 0.6rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, transparent 70%);
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            background: #fdfbf7;
+            background-image: radial-gradient(#f3e9d2 1px, transparent 1px);
+            background-size: 8px 8px;
+            border: 3px solid #b8860b;
+            box-shadow: inset 0 0 15px rgba(184, 134, 11, 0.2), 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .card-back-frame {
+            border: 1.5px solid #8b5a2b;
+            height: calc(100% - 10px);
+            margin: 5px;
+            border-radius: 0.5rem;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px;
+        }
+
+        @keyframes pulse-success {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+        }
+        .matched-anim {
+            animation: pulse-success 0.5s ease-in-out;
+        }
+
+        .hub-card {
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .hub-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Drag / Drop Timeline item styling */
+        .timeline-item {
+            cursor: grab;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+        .timeline-item:active {
+            cursor: grabbing;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-amber-50 text-slate-800 min-h-screen flex flex-col justify-between selection:bg-amber-200">
+
+    <header class="bg-amber-950 text-amber-50 shadow-xl sticky top-0 z-30 border-b-4 border-amber-600">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+            
+            <!-- Logo & Hub Titel -->
+            <button onclick="showScreen('hub')" class="flex items-center gap-3 group text-left focus:outline-none">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-600 to-amber-400 text-amber-950 flex items-center justify-center text-2xl shadow-lg border border-amber-300 group-hover:scale-105 transition-transform">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold tracking-wide leading-none font-serif-title text-amber-100 group-hover:text-amber-300 transition-colors">
+                        TRIAS LUDI
+                    </h1>
+                    <p class="text-[11px] text-amber-300 mt-0.5 tracking-wider font-semibold">Educatief Spellen Platform</p>
+                </div>
+            </button>
+
+            <!-- Sterren Saldo & Acties -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <!-- Totaal Sterren Teller -->
+                <div class="bg-amber-900/90 border border-amber-500/60 rounded-xl px-3 py-1.5 flex items-center gap-3 text-xs font-bold shadow-inner" title="Jouw verzamelde sterren in Trias Ludi">
+                    <div class="flex items-center gap-1 text-amber-300" title="Brons Sterren (Makkelijk)">
+                        <span>🥉</span> <span id="star-count-bronze">0</span>
+                    </div>
+                    <div class="flex items-center gap-1 text-slate-200" title="Zilveren Sterren (Normaal)">
+                        <span>🥈</span> <span id="star-count-silver">0</span>
+                    </div>
+                    <div class="flex items-center gap-1 text-amber-400" title="Gouden Sterren (Uitdagend)">
+                        <span>🥇</span> <span id="star-count-gold">0</span>
+                    </div>
+                </div>
+
+                <!-- Navigatie Knoppen -->
+                <button id="nav-btn-hub" onclick="showScreen('hub')" class="px-3.5 py-2 rounded-xl text-xs md:text-sm font-bold bg-amber-500 text-amber-950 shadow-md transition-all hover:bg-amber-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-house"></i> Hub Home
+                </button>
+                <button id="btn-open-shop" onclick="openShopModal()" class="px-3.5 py-2 rounded-xl text-xs md:text-sm font-bold bg-amber-800/80 hover:bg-amber-700 text-amber-100 shadow-md transition-all flex items-center gap-1.5 relative">
+                    <i class="fa-solid fa-store text-amber-300"></i> Kaarten Shop
+                </button>
+                <button id="btn-tab-wiki" onclick="showScreen('wiki')" class="px-3.5 py-2 rounded-xl text-xs md:text-sm font-bold bg-amber-900/80 hover:bg-amber-800 text-amber-100 transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-book-open"></i> Kennisbank
+                </button>
+                <button id="btn-sound-toggle" onclick="toggleSound()" class="p-2 w-9 h-9 rounded-xl bg-amber-900/80 hover:bg-amber-800 text-amber-100 transition-all flex items-center justify-center" title="Geluid aan/uit">
+                    <i id="sound-icon" class="fa-solid fa-volume-high"></i>
+                </button>
+                <button onclick="promptResetProgress()" class="p-2 w-9 h-9 rounded-xl bg-amber-900/80 hover:bg-red-800 text-amber-100 transition-all flex items-center justify-center" title="Voortgang Wissen">
+                    <i class="fa-solid fa-trash-arrow-up"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-6 flex-grow w-full">
+
+        <div id="screen-hub" class="space-y-8">
+            
+            <!-- Hero Banner -->
+            <div class="bg-gradient-to-r from-amber-950 via-amber-900 to-stone-900 text-amber-50 rounded-3xl p-6 md:p-8 shadow-2xl border-4 border-amber-600 relative overflow-hidden">
+                <div class="absolute -right-8 -bottom-10 opacity-10 text-amber-100 text-[180px] pointer-events-none font-serif-title">
+                    🏛️
+                </div>
+                <div class="max-w-2xl relative z-10">
+                    <span class="inline-block px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-full text-xs font-bold uppercase tracking-widest mb-3">
+                        Welkom bij Trias Ludi
+                    </span>
+                    <h2 class="text-3xl md:text-4xl font-black font-serif-title text-amber-100 mb-3 leading-tight">
+                        Drie Vakken, Meerdere Spellen & Real-time Voortgang
+                    </h2>
+                    <p class="text-amber-200/90 text-sm md:text-base leading-relaxed mb-6">
+                        Kies een vak en speel verschillende educatieve minigames op jouw eigen niveau! Jouw behaalde sterren, highscores en gekochte kaarten worden automatisch opgeslagen.
+                    </p>
+                    <div class="flex items-center gap-3 flex-wrap text-xs font-bold text-amber-300">
+                        <span class="flex items-center gap-1.5 bg-amber-950/60 px-3 py-1.5 rounded-xl border border-amber-800">
+                            <i class="fa-solid fa-floppy-disk text-emerald-400"></i> Voortgang Opgeslagen
+                        </span>
+                        <span class="flex items-center gap-1.5 bg-amber-950/60 px-3 py-1.5 rounded-xl border border-amber-800">
+                            <i class="fa-solid fa-gamepad text-amber-400"></i> 6 Unieke Spellen
+                        </span>
+                        <span class="flex items-center gap-1.5 bg-amber-950/60 px-3 py-1.5 rounded-xl border border-amber-800">
+                            <i class="fa-solid fa-layer-group text-amber-400"></i> 3 Moeilijkheidsgraden
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-2xl font-bold font-serif-title text-amber-950 flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-amber-600"></i> Kies een Vak & Spel
+                    </h3>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    
+                    <!-- VAK 1: GESCHIEDENIS -->
+                    <div class="hub-card bg-white rounded-3xl border-4 border-amber-600 shadow-xl overflow-hidden flex flex-col justify-between">
+                        <div class="bg-gradient-to-tr from-amber-900 to-amber-700 p-6 text-white relative">
+                            <div class="w-12 h-12 rounded-2xl bg-amber-950/50 border border-amber-300/40 flex items-center justify-center text-2xl mb-2 shadow-inner">
+                                📜
+                            </div>
+                            <span class="text-xs font-bold text-amber-200 uppercase tracking-widest">VAK 1 • HISTORIA</span>
+                            <h4 class="text-2xl font-black font-serif-title leading-tight mt-0.5">Geschiedenis</h4>
+                        </div>
+                        <div class="p-5 space-y-4 flex-grow flex flex-col justify-between">
+                            <p class="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                                Ontdek belangrijke tijdvakken, uitvindingen en gebeurtenissen door paren te maken of een chronologische tijdlijn te bouwen!
+                            </p>
+
+                            <!-- Spel opties voor Geschiedenis -->
+                            <div class="space-y-2 pt-2">
+                                <div class="p-3 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col gap-2">
+                                    <div class="flex items-center justify-between">
+                                        <div class="font-bold text-xs text-amber-950 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-brain text-amber-600"></i> 1. Historische Memory
+                                        </div>
+                                        <span id="badge-hist-memory" class="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-md font-bold">Best: --:--</span>
+                                    </div>
+                                    <button onclick="launchGame('history-memory')" class="w-full py-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-bold rounded-xl shadow text-xs flex items-center justify-center gap-1.5 transition-all">
+                                        <i class="fa-solid fa-play"></i> Speel Memory
+                                    </button>
+                                </div>
+
+                                <div class="p-3 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col gap-2">
+                                    <div class="flex items-center justify-between">
+                                        <div class="font-bold text-xs text-amber-950 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-timeline text-amber-600"></i> 2. Tijdlijn Sorteerder
+                                        </div>
+                                        <span id="badge-hist-timeline" class="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-md font-bold">Best: 0 pt</span>
+                                    </div>
+                                    <button onclick="launchGame('history-timeline')" class="w-full py-2 bg-amber-700 hover:bg-amber-800 active:scale-95 text-white font-bold rounded-xl shadow text-xs flex items-center justify-center gap-1.5 transition-all">
+                                        <i class="fa-solid fa-arrow-down-1-9"></i> Speel Tijdlijn
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- VAK 2: AARDRIJKSKUNDE -->
+                    <div class="hub-card bg-white rounded-3xl border-4 border-emerald-600 shadow-xl overflow-hidden flex flex-col justify-between">
+                        <div class="bg-gradient-to-tr from-emerald-900 to-teal-700 p-6 text-white relative">
+                            <div class="w-12 h-12 rounded-2xl bg-emerald-950/50 border border-emerald-300/40 flex items-center justify-center text-2xl mb-2 shadow-inner">
+                                🌍
+                            </div>
+                            <span class="text-xs font-bold text-emerald-200 uppercase tracking-widest">VAK 2 • GEOGRAPHIA</span>
+                            <h4 class="text-2xl font-black font-serif-title leading-tight mt-0.5">Aardrijkskunde</h4>
+                        </div>
+                        <div class="p-5 space-y-4 flex-grow flex flex-col justify-between">
+                            <p class="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                                Reis over de wereldbol! Test je kennis over landschappen, continenten, vlaggen en wereldsteden.
+                            </p>
+
+                            <!-- Spel opties voor Aardrijkskunde -->
+                            <div class="space-y-2 pt-2">
+                                <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 flex flex-col gap-2">
+                                    <div class="flex items-center justify-between">
+                                        <div class="font-bold text-xs text-emerald-950 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-compass text-teal-600"></i> 1. Wereldexpeditie Quiz
+                                        </div>
+                                        <span id="badge-geo-quiz" class="text-[10px] bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-md font-bold">Best: 0 pt</span>
+                                    </div>
+                                    <button onclick="launchGame('geo-quiz')" class="w-full py-2 bg-teal-600 hover:bg-teal-700 active:scale-95 text-white font-bold rounded-xl shadow text-xs flex items-center justify-center gap-1.5 transition-all">
+                                        <i class="fa-solid fa-play"></i> Speel Expeditie
+                                    </button>
+                                </div>
+
+                                <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 flex flex-col gap-2">
+                                    <div class="flex items-center justify-between">
+                                        <div class="font-bold text-xs text-emerald-950 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-flag text-teal-600"></i> 2. Vlaggen Speedrun
+                                        </div>
+                                        <span id="badge-geo-flags" class="text-[10px] bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-md font-bold">Best: 0 pt</span>
+                                    </div>
+                                    <button onclick="launchGame('geo-flags')" class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-bold rounded-xl shadow text-xs flex items-center justify-center gap-1.5 transition-all">
+                                        <i class="fa-solid fa-bolt"></i> Speel Vlaggen Speedrun
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- VAK 3: LATIJN -->
+                    <div class="hub-card bg-white rounded-3xl border-4 border-purple-600 shadow-xl overflow-hidden flex flex-col justify-between">
+                        <div class="bg-gradient-to-tr from-purple-950 to-indigo-800 p-6 text-white relative">
+                            <div class="w-12 h-12 rounded-2xl bg-purple-950/50 border border-purple-300/40 flex items-center justify-center text-2xl mb-2 shadow-inner">
+                                🏛️
+                            </div>
+                            <span class="text-xs font-bold text-purple-200 uppercase tracking-widest">VAK 3 • LINGUA LATINA</span>
+                            <h4 class="text-2xl font-black font-serif-title leading-tight mt-0.5">Latijn</h4>
+                        </div>
+                        <div class="p-5 space-y-4 flex-grow flex flex-col justify-between">
+                            <p class="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                                Leer de taal van de Romeinen! Ontcijfer beroemde klassieke citaten of oefen de belangrijkste Latijnse woordenschat.
+                            </p>
+
+                            <!-- Spel opties voor Latijn -->
+                            <div class="space-y-2 pt-2">
+                                <div class="p-3 rounded-2xl bg-purple-50 border border-purple-200 flex flex-col gap-2">
+                                    <div class="flex items-center justify-between">
+                                        <div class="font-bold text-xs text-purple-950 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-quote-left text-purple-600"></i> 1. Dicta Romana (Citaten)
+                                        </div>
+                                        <span id="badge-latin-quotes" class="text-[10px] bg-purple-200 text-purple-900 px-2 py-0.5 rounded-md font-bold">Best: 0 pt</span>
+                                    </div>
+                                    <button onclick="launchGame('latin-quotes')" class="w-full py-2 bg-indigo-700 hover:bg-indigo-800 active:scale-95 text-white font-bold rounded-xl shadow text-xs flex items-center justify-center gap-1.5 transition-all">
+                                        <i class="fa-solid fa-play"></i> Speel Citaten Quiz
+                                    </button>
+                                </div>
+
+                                <div class="p-3 rounded-2xl bg-purple-50 border border-purple-200 flex flex-col gap-2">
+                                    <div class="flex items-center justify-between">
+                                        <div class="font-bold text-xs text-purple-950 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-spell-check text-purple-600"></i> 2. Vocabularium Match
+                                        </div>
+                                        <span id="badge-latin-vocab" class="text-[10px] bg-purple-200 text-purple-900 px-2 py-0.5 rounded-md font-bold">Best: 0 pt</span>
+                                    </div>
+                                    <button onclick="launchGame('latin-vocab')" class="w-full py-2 bg-purple-800 hover:bg-purple-900 active:scale-95 text-white font-bold rounded-xl shadow text-xs flex items-center justify-center gap-1.5 transition-all">
+                                        <i class="fa-solid fa-book text-amber-300"></i> Speel Woordenschat
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div id="screen-game-hist-memory" class="hidden space-y-6">
+            <div class="flex items-center justify-between bg-amber-900 text-amber-100 p-3.5 px-5 rounded-2xl shadow-md border border-amber-700">
+                <button onclick="showScreen('hub')" class="px-3.5 py-1.5 bg-amber-800 hover:bg-amber-700 text-amber-100 font-bold text-xs md:text-sm rounded-xl transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Terug naar Hub
+                </button>
+                <span class="font-serif-title font-bold text-sm md:text-base text-amber-200 flex items-center gap-2">
+                    📜 Geschiedenis: Memory
+                </span>
+            </div>
+
+            <!-- Controls bar -->
+            <div class="bg-white p-4 rounded-2xl shadow-md border border-amber-200 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-2">
+                    <label for="memory-difficulty" class="text-xs font-bold text-slate-600 uppercase">Moeilijkheid:</label>
+                    <select id="memory-difficulty" onchange="initMemoryGame()" class="bg-amber-50 border border-amber-300 text-slate-800 font-bold text-xs rounded-xl px-3 py-2 focus:outline-none">
+                        <option value="easy">Makkelijk (8 kaarten - 🥉 Brons)</option>
+                        <option value="medium" selected>Normaal (16 kaarten - 🥈 Zilver)</option>
+                        <option value="hard">Uitdagend (24 kaarten - 🥇 Goud)</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-4 bg-amber-50 px-4 py-1.5 rounded-xl border border-amber-200 text-xs">
+                    <div>Beurten: <strong id="mem-moves" class="text-amber-900 text-sm">0</strong></div>
+                    <div class="h-4 w-px bg-amber-300"></div>
+                    <div>Paren: <strong id="mem-pairs" class="text-amber-900 text-sm">0 / 8</strong></div>
+                    <div class="h-4 w-px bg-amber-300"></div>
+                    <div>Tijd: <strong id="mem-timer" class="text-amber-900 text-sm">00:00</strong></div>
+                </div>
+
+                <button onclick="initMemoryGame()" class="px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-right"></i> Herstart
+                </button>
+            </div>
+
+            <div id="memory-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 min-h-[340px]">
+                <!-- Dynamic cards -->
+            </div>
+        </div>
+
+        <div id="screen-game-hist-timeline" class="hidden space-y-6">
+            <div class="flex items-center justify-between bg-amber-900 text-amber-100 p-3.5 px-5 rounded-2xl shadow-md border border-amber-700">
+                <button onclick="showScreen('hub')" class="px-3.5 py-1.5 bg-amber-800 hover:bg-amber-700 text-amber-100 font-bold text-xs md:text-sm rounded-xl transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Terug naar Hub
+                </button>
+                <span class="font-serif-title font-bold text-sm md:text-base text-amber-200 flex items-center gap-2">
+                    ⏳ Geschiedenis: Tijdlijn Sorteerder
+                </span>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl shadow-md border border-amber-200 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-2">
+                    <label for="timeline-difficulty" class="text-xs font-bold text-slate-600 uppercase">Moeilijkheid:</label>
+                    <select id="timeline-difficulty" onchange="initTimelineGame()" class="bg-amber-50 border border-amber-300 text-slate-800 font-bold text-xs rounded-xl px-3 py-2 focus:outline-none">
+                        <option value="easy">Makkelijk (4 Gebeurtenissen - 🥉)</option>
+                        <option value="medium" selected>Normaal (6 Gebeurtenissen - 🥈)</option>
+                        <option value="hard">Uitdagend (8 Gebeurtenissen - 🥇)</option>
+                    </select>
+                </div>
+                <p class="text-xs text-slate-600 italic">Sleep de gebeurtenissen of gebruik de pijl-knoppen om ze in de juiste volgorde van OUD naar NIEUW te zetten!</p>
+                <button onclick="initTimelineGame()" class="px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-right"></i> Nieuwe Tijdlijn
+                </button>
+            </div>
+
+            <div class="bg-white p-6 rounded-3xl border-4 border-amber-500 shadow-xl max-w-3xl mx-auto space-y-4">
+                <h3 class="text-lg font-bold font-serif-title text-center text-amber-950">
+                    Sorteer van Oudste (Bovenaan) naar Nieuwste (Onderaan)
+                </h3>
+                <div id="timeline-container" class="space-y-2">
+                    <!-- Dynamic timeline elements -->
+                </div>
+                <button onclick="checkTimelineSolution()" class="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-2xl shadow transition-all text-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-check-double"></i> Controleer Volgorde
+                </button>
+            </div>
+        </div>
+
+        <div id="screen-game-geo-quiz" class="hidden space-y-6">
+            <div class="flex items-center justify-between bg-teal-900 text-emerald-100 p-3.5 px-5 rounded-2xl shadow-md border border-teal-700">
+                <button onclick="showScreen('hub')" class="px-3.5 py-1.5 bg-teal-800 hover:bg-teal-700 text-teal-100 font-bold text-xs md:text-sm rounded-xl transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Terug naar Hub
+                </button>
+                <span class="font-serif-title font-bold text-sm md:text-base text-emerald-200 flex items-center gap-2">
+                    🌍 Aardrijkskunde: Wereldexpeditie
+                </span>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl shadow-md border border-teal-200 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-2">
+                    <label for="geo-difficulty" class="text-xs font-bold text-slate-600 uppercase">Niveau:</label>
+                    <select id="geo-difficulty" onchange="initGeoQuiz()" class="bg-emerald-50 border border-emerald-300 text-slate-800 font-bold text-xs rounded-xl px-3 py-2 focus:outline-none">
+                        <option value="easy">Junior Reiziger (5 Vragen - 🥉)</option>
+                        <option value="medium" selected>Kartograaf (8 Vragen - 🥈)</option>
+                        <option value="hard">Meester Ontdekkingsreiziger (12 Vragen - 🥇)</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-4 bg-emerald-50 px-4 py-1.5 rounded-xl border border-emerald-200 text-xs">
+                    <div>Vraag: <strong id="geo-q-num" class="text-teal-900 text-sm">1 / 8</strong></div>
+                    <div class="h-4 w-px bg-emerald-300"></div>
+                    <div>Score: <strong id="geo-score" class="text-teal-900 text-sm">0 pt</strong></div>
+                </div>
+                <button onclick="initGeoQuiz()" class="px-4 py-2 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-right"></i> Herstart Quiz
+                </button>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-xl border-4 border-teal-500 p-6 md:p-8 max-w-3xl mx-auto space-y-6">
+                <div class="text-center space-y-3">
+                    <div id="geo-icon" class="text-6xl my-2">🌍</div>
+                    <h3 id="geo-question" class="text-xl md:text-2xl font-bold font-serif-title text-slate-900">
+                        Vraag wordt geladen...
+                    </h3>
+                </div>
+
+                <div id="geo-options" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Dynamic options -->
+                </div>
+
+                <div id="geo-fact-box" class="hidden bg-emerald-50 border border-emerald-300 p-4 rounded-2xl text-xs space-y-2">
+                    <div class="font-bold text-emerald-800"><i class="fa-solid fa-circle-info"></i> Wist je dat?</div>
+                    <p id="geo-fact-text" class="text-emerald-950 font-semibold"></p>
+                    <button id="geo-next-btn" onclick="nextGeoQuestion()" class="px-4 py-2 bg-teal-700 text-white font-bold rounded-xl text-xs ml-auto block">
+                        Volgende Vraag <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-game-geo-flags" class="hidden space-y-6">
+            <div class="flex items-center justify-between bg-teal-900 text-emerald-100 p-3.5 px-5 rounded-2xl shadow-md border border-teal-700">
+                <button onclick="showScreen('hub')" class="px-3.5 py-1.5 bg-teal-800 hover:bg-teal-700 text-teal-100 font-bold text-xs md:text-sm rounded-xl transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Terug naar Hub
+                </button>
+                <span class="font-serif-title font-bold text-sm md:text-base text-emerald-200 flex items-center gap-2">
+                    🚩 Aardrijkskunde: Vlaggen & Hoofdsteden Speedrun
+                </span>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl shadow-md border border-teal-200 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-2">
+                    <label for="flags-difficulty" class="text-xs font-bold text-slate-600 uppercase">Niveau:</label>
+                    <select id="flags-difficulty" onchange="initFlagsGame()" class="bg-emerald-50 border border-emerald-300 text-slate-800 font-bold text-xs rounded-xl px-3 py-2 focus:outline-none">
+                        <option value="easy">Ontdekker (6 Vlaggen - 🥉)</option>
+                        <option value="medium" selected>Expeditie (10 Vlaggen - 🥈)</option>
+                        <option value="hard">Globe Trotter (14 Vlaggen - 🥇)</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-4 bg-emerald-50 px-4 py-1.5 rounded-xl border border-emerald-200 text-xs">
+                    <div>Goed: <strong id="flags-score" class="text-teal-900 text-sm">0</strong></div>
+                </div>
+                <button onclick="initFlagsGame()" class="px-4 py-2 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-right"></i> Herstart
+                </button>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-xl border-4 border-emerald-500 p-6 max-w-3xl mx-auto space-y-6">
+                <p class="text-xs text-center text-slate-600 font-bold">
+                    Koppel de juiste Vlag / Land aan de bijbehorende Hoofdstad!
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div id="flags-left-column" class="space-y-3">
+                        <!-- Flag items -->
+                    </div>
+                    <div id="flags-right-column" class="space-y-3">
+                        <!-- Capital items -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-game-latin-quotes" class="hidden space-y-6">
+            <div class="flex items-center justify-between bg-purple-950 text-purple-100 p-3.5 px-5 rounded-2xl shadow-md border border-purple-700">
+                <button onclick="showScreen('hub')" class="px-3.5 py-1.5 bg-purple-800 hover:bg-purple-700 text-purple-100 font-bold text-xs md:text-sm rounded-xl transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Terug naar Hub
+                </button>
+                <span class="font-serif-title font-bold text-sm md:text-base text-purple-200 flex items-center gap-2">
+                    🏛️ Latijn: Dicta Romana (Citaten)
+                </span>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl shadow-md border border-purple-200 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-2">
+                    <label for="latin-difficulty" class="text-xs font-bold text-slate-600 uppercase">Rang:</label>
+                    <select id="latin-difficulty" onchange="initLatinQuotes()" class="bg-purple-50 border border-purple-300 text-slate-800 font-bold text-xs rounded-xl px-3 py-2 focus:outline-none">
+                        <option value="easy">Tiro (5 Citaten - 🥉)</option>
+                        <option value="medium" selected>Legionarius (8 Citaten - 🥈)</option>
+                        <option value="hard">Centurio (12 Citaten - 🥇)</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-4 bg-purple-50 px-4 py-1.5 rounded-xl border border-purple-200 text-xs">
+                    <div>Citaat: <strong id="lat-q-num" class="text-purple-900 text-sm">1 / 8</strong></div>
+                    <div class="h-4 w-px bg-purple-300"></div>
+                    <div>Score: <strong id="lat-score" class="text-purple-900 text-sm">0 pt</strong></div>
+                </div>
+                <button onclick="initLatinQuotes()" class="px-4 py-2 bg-indigo-700 hover:bg-indigo-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-right"></i> Herstart Citaten
+                </button>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-xl border-4 border-purple-600 p-6 md:p-8 max-w-3xl mx-auto space-y-6">
+                <div class="text-center space-y-3">
+                    <span class="text-xs font-bold text-purple-700 uppercase tracking-widest bg-purple-100 px-3 py-1 rounded-full">Romeins Citaat</span>
+                    <h3 id="lat-quote-text" class="text-2xl md:text-3xl font-black font-serif-title text-purple-950 italic">
+                        "Veni, vidi, vici"
+                    </h3>
+                    <p id="lat-hint" class="text-xs text-slate-500 font-semibold italic">Hint: Uitgesproken door Julius Caesar na een snelle overwinning.</p>
+                </div>
+
+                <div id="lat-options" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Dynamic options -->
+                </div>
+
+                <div id="lat-fact-box" class="hidden bg-purple-50 border border-purple-300 p-4 rounded-2xl text-xs space-y-2">
+                    <div class="font-bold text-purple-900"><i class="fa-solid fa-scroll"></i> Betekenis:</div>
+                    <p id="lat-fact-text" class="text-purple-950 font-semibold"></p>
+                    <button id="lat-next-btn" onclick="nextLatinQuote()" class="px-4 py-2 bg-indigo-700 text-white font-bold rounded-xl text-xs ml-auto block">
+                        Volgend Citaat <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-game-latin-vocab" class="hidden space-y-6">
+            <div class="flex items-center justify-between bg-purple-950 text-purple-100 p-3.5 px-5 rounded-2xl shadow-md border border-purple-700">
+                <button onclick="showScreen('hub')" class="px-3.5 py-1.5 bg-purple-800 hover:bg-purple-700 text-purple-100 font-bold text-xs md:text-sm rounded-xl transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Terug naar Hub
+                </button>
+                <span class="font-serif-title font-bold text-sm md:text-base text-purple-200 flex items-center gap-2">
+                    📖 Latijn: Vocabularium Match
+                </span>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl shadow-md border border-purple-200 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-2">
+                    <label for="vocab-difficulty" class="text-xs font-bold text-slate-600 uppercase">Rang:</label>
+                    <select id="vocab-difficulty" onchange="initVocabGame()" class="bg-purple-50 border border-purple-300 text-slate-800 font-bold text-xs rounded-xl px-3 py-2 focus:outline-none">
+                        <option value="easy">Discipulus (6 Woorden - 🥉)</option>
+                        <option value="medium" selected>Grammaticus (10 Woorden - 🥈)</option>
+                        <option value="hard">Rhetor (14 Woorden - 🥇)</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-4 bg-purple-50 px-4 py-1.5 rounded-xl border border-purple-200 text-xs">
+                    <div>Gekoppeld: <strong id="vocab-score" class="text-purple-900 text-sm">0</strong></div>
+                </div>
+                <button onclick="initVocabGame()" class="px-4 py-2 bg-purple-800 hover:bg-purple-900 text-white font-bold rounded-xl text-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-right"></i> Herstart
+                </button>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-xl border-4 border-purple-600 p-6 max-w-3xl mx-auto space-y-6">
+                <p class="text-xs text-center text-slate-600 font-bold">
+                    Klik op een Latijns woord en koppel het aan de juiste Nederlandse vertaling!
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div id="vocab-left-column" class="space-y-3">
+                        <!-- Latin words -->
+                    </div>
+                    <div id="vocab-right-column" class="space-y-3">
+                        <!-- Dutch translations -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-wiki" class="hidden space-y-6">
+            <div class="flex items-center justify-between bg-amber-950 text-amber-100 p-3.5 px-5 rounded-2xl shadow-md border border-amber-700">
+                <button onclick="showScreen('hub')" class="px-3.5 py-1.5 bg-amber-800 hover:bg-amber-700 text-amber-100 font-bold text-xs md:text-sm rounded-xl transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Terug naar Hub
+                </button>
+                <span class="font-serif-title font-bold text-sm md:text-base text-amber-200">
+                    📖 Kennisbank & Leergids
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-3xl shadow-md border-2 border-amber-200 space-y-3">
+                    <h4 class="font-bold text-lg font-serif-title text-amber-900 flex items-center gap-2"><i class="fa-solid fa-hourglass-half text-amber-600"></i> Geschiedenis</h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Geschiedenis is onderverdeeld in 10 bekende tijdvakken. Van de Jagers en Boeren (Prehistorie) tot de Tijd van Burgers en Stoom. Elk tijdvak brengt eigen uitvindingen met zich mee.
+                    </p>
+                </div>
+                <div class="bg-white p-6 rounded-3xl shadow-md border-2 border-emerald-200 space-y-3">
+                    <h4 class="font-bold text-lg font-serif-title text-emerald-900 flex items-center gap-2"><i class="fa-solid fa-earth-africa text-teal-600"></i> Aardrijkskunde</h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Aardrijkskunde onderzoekt onze planeet Aarde: klimaten, continenten, vlaggen en steden. Leren over de wereld helpt ons begrijpen hoe landschappen en culturen gevormd zijn.
+                    </p>
+                </div>
+                <div class="bg-white p-6 rounded-3xl shadow-md border-2 border-purple-200 space-y-3">
+                    <h4 class="font-bold text-lg font-serif-title text-purple-900 flex items-center gap-2"><i class="fa-solid fa-landmark text-purple-600"></i> Latijn</h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Latijn vormt de oorsprong van vele Europese talen (Romaanse talen). Het bestuderen van Romeinse filosofen en spreekwoorden verrijkt onze woordenschat en historisch inzicht.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- SHOP MODAL -->
+    <div id="modal-shop" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border-4 border-amber-500 space-y-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-amber-200 pb-3">
+                <h3 class="text-xl font-bold font-serif-title text-amber-950 flex items-center gap-2">
+                    <i class="fa-solid fa-store text-amber-600"></i> Kaarten Shop & Collectie
+                </h3>
+                <button onclick="closeShopModal()" class="p-2 text-slate-400 hover:text-slate-700 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-xs flex justify-between items-center">
+                <span>Besteed jouw verzamelde sterren aan unieke historische verzamelkaarten!</span>
+                <div class="font-bold text-amber-900 flex gap-2">
+                    <span>🥉 <span id="shop-bronze">0</span></span>
+                    <span>🥈 <span id="shop-silver">0</span></span>
+                    <span>🥇 <span id="shop-gold">0</span></span>
+                </div>
+            </div>
+
+            <div id="shop-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Dynamic shop items -->
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast-message" class="fixed bottom-6 right-6 bg-amber-900 text-amber-100 px-5 py-3 rounded-2xl shadow-2xl border border-amber-500 text-xs md:text-sm font-bold hidden z-50 flex items-center gap-3 transition-all">
+        <i id="toast-icon" class="fa-solid fa-star text-amber-400 text-lg"></i>
+        <span id="toast-text">Gefeliciteerd! Spel voltooid.</span>
+    </div>
+
+    <script>
+        /* ==========================================
+           GAME STATE & LOCALSTORAGE PROGRESS SYSTEM
+           ========================================== */
+        const STORAGE_KEY = 'trias_ludi_progress_v2';
+
+        let userState = {
+            stars: { bronze: 0, silver: 0, gold: 0 },
+            highscores: {
+                'history-memory': '--:--',
+                'history-timeline': 0,
+                'geo-quiz': 0,
+                'geo-flags': 0,
+                'latin-quotes': 0,
+                'latin-vocab': 0
+            },
+            unlockedShopCards: []
+        };
+
+        // Load progress from LocalStorage
+        function loadUserProgress() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    userState = { ...userState, ...parsed };
+                }
+            } catch (e) {
+                console.error("Kon voortgang niet laden van LocalStorage:", e);
+            }
+            updateUIProgressCounters();
+        }
+
+        // Save progress to LocalStorage
+        function saveUserProgress() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(userState));
+            } catch (e) {
+                console.error("Kon voortgang niet opslaan in LocalStorage:", e);
+            }
+            updateUIProgressCounters();
+        }
+
+        // Reset progress with notification
+        function promptResetProgress() {
+            if (confirm("Weet je zeker dat je alle behaalde sterren en highscores wilt wissen?")) {
+                localStorage.removeItem(STORAGE_KEY);
+                userState = {
+                    stars: { bronze: 0, silver: 0, gold: 0 },
+                    highscores: {
+                        'history-memory': '--:--',
+                        'history-timeline': 0,
+                        'geo-quiz': 0,
+                        'geo-flags': 0,
+                        'latin-quotes': 0,
+                        'latin-vocab': 0
+                    },
+                    unlockedShopCards: []
+                };
+                saveUserProgress();
+                showToast("Voortgang succesvol gewist!", "fa-trash");
+            }
+        }
+
+        function updateUIProgressCounters() {
+            document.getElementById('star-count-bronze').innerText = userState.stars.bronze;
+            document.getElementById('star-count-silver').innerText = userState.stars.silver;
+            document.getElementById('star-count-gold').innerText = userState.stars.gold;
+
+            document.getElementById('badge-hist-memory').innerText = 'Best: ' + (userState.highscores['history-memory'] || '--:--');
+            document.getElementById('badge-hist-timeline').innerText = 'Best: ' + (userState.highscores['history-timeline'] || 0) + ' pt';
+            document.getElementById('badge-geo-quiz').innerText = 'Best: ' + (userState.highscores['geo-quiz'] || 0) + ' pt';
+            document.getElementById('badge-geo-flags').innerText = 'Best: ' + (userState.highscores['geo-flags'] || 0) + ' pt';
+            document.getElementById('badge-latin-quotes').innerText = 'Best: ' + (userState.highscores['latin-quotes'] || 0) + ' pt';
+            document.getElementById('badge-latin-vocab').innerText = 'Best: ' + (userState.highscores['latin-vocab'] || 0) + ' pt';
+        }
+
+        function awardStars(tier) {
+            if (tier === 'easy') userState.stars.bronze += 1;
+            else if (tier === 'medium') userState.stars.silver += 1;
+            else if (tier === 'hard') userState.stars.gold += 1;
+            saveUserProgress();
+        }
+
+        /* ==========================================
+           AUDIO SYNTHESIZER (NO EXTERNAL FILES)
+           ========================================== */
+        let soundEnabled = true;
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new AudioCtx();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+                if (type === 'flip') {
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.exponentialRampToValueAtTime(150, now + 0.08);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'match' || type === 'success') {
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(660, now + 0.1);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180, now);
+                    osc.frequency.setValueAtTime(140, now + 0.1);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                }
+            } catch (e) {}
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            icon.className = soundEnabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
+            showToast(soundEnabled ? "Geluid AAN" : "Geluid UIT", soundEnabled ? "fa-volume-high" : "fa-volume-xmark");
+        }
+
+        /* ==========================================
+           NAVIGATION & UI ROUTING
+           ========================================== */
+        function showScreen(screenId) {
+            const screens = ['hub', 'game-hist-memory', 'game-hist-timeline', 'game-geo-quiz', 'game-geo-flags', 'game-latin-quotes', 'game-latin-vocab', 'wiki'];
+            screens.forEach(s => {
+                const el = document.getElementById('screen-' + s);
+                if (el) el.classList.add('hidden');
+            });
+            const target = document.getElementById('screen-' + screenId);
+            if (target) target.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function launchGame(gameKey) {
+            showScreen('game-' + gameKey);
+            if (gameKey === 'hist-memory') initMemoryGame();
+            else if (gameKey === 'hist-timeline') initTimelineGame();
+            else if (gameKey === 'geo-quiz') initGeoQuiz();
+            else if (gameKey === 'geo-flags') initFlagsGame();
+            else if (gameKey === 'latin-quotes') initLatinQuotes();
+            else if (gameKey === 'latin-vocab') initVocabGame();
+        }
+
+        function showToast(msg, icon = 'fa-star') {
+            const toast = document.getElementById('toast-message');
+            document.getElementById('toast-text').innerText = msg;
+            document.getElementById('toast-icon').className = 'fa-solid ' + icon + ' text-amber-400 text-lg';
+            toast.classList.remove('hidden');
+            setTimeout(() => { toast.classList.add('hidden'); }, 3000);
+        }
+
+        /* ==========================================
+           SPEL 1: GESCHIEDENIS MEMORY
+           ========================================== */
+        const memoryDatabase = [
+            { id: 1, title: 'Prehistorie', icon: '🦴', fact: 'Tijd van Jagers en Boeren (tot 3000 v.Chr.)' },
+            { id: 2, title: 'Romeinse Rijk', icon: '🏛️', fact: 'Romeins rijk met gladiatoren en aquaducten' },
+            { id: 3, title: 'Ridders & Kasteel', icon: '⚔️', fact: 'Middeleeuwen met ridders en leenheren' },
+            { id: 4, title: 'Ontdekkingsreizen', icon: '⛵', fact: '16e eeuw: Reizen naar verre continenten' },
+            { id: 5, title: 'Stoommachine', icon: '🚂', fact: 'Industriële Revolutie veranderde fabrieken' },
+            { id: 6, title: 'Maanlanding', icon: '🚀', fact: '1969: Neil Armstrong op de maan' },
+            { id: 7, title: 'Boekdrukkunst', icon: '📜', fact: 'Gutenberg veroorzaakte een kennisrevolutie' },
+            { id: 8, title: 'Apt & Kunst', icon: '🎨', fact: 'De Renaissance kende grote meesters' },
+            { id: 9, title: 'Piramides', icon: '📐', fact: 'Oude Egypte en de machtige Farao\'s' },
+            { id: 10, title: 'Griekse Filosofie', icon: '🏛️', fact: 'Athene legde de basis voor democratie' },
+            { id: 11, title: 'Elektriciteit', icon: '💡', fact: 'Uitvinding van de gloeilamp door Edison' },
+            { id: 12, title: 'Digitale Tijd', icon: '💻', fact: 'Uitvinding van de computer en het internet' }
+        ];
+
+        let memFlippedCards = [];
+        let memMatchedCount = 0;
+        let memMoves = 0;
+        let memTimerSeconds = 0;
+        let memTimerInterval = null;
+
+        function initMemoryGame() {
+            clearInterval(memTimerInterval);
+            memFlippedCards = [];
+            memMatchedCount = 0;
+            memMoves = 0;
+            memTimerSeconds = 0;
+
+            const diff = document.getElementById('memory-difficulty').value;
+            let pairCount = 4; // easy
+            if (diff === 'medium') pairCount = 8;
+            else if (diff === 'hard') pairCount = 12;
+
+            document.getElementById('mem-moves').innerText = '0';
+            document.getElementById('mem-pairs').innerText = `0 / ${pairCount}`;
+            document.getElementById('mem-timer').innerText = '00:00';
+
+            const selected = memoryDatabase.slice(0, pairCount);
+            let deck = [];
+            selected.forEach(item => {
+                deck.push({ ...item, cardId: Math.random() });
+                deck.push({ ...item, cardId: Math.random() });
+            });
+            deck.sort(() => 0.5 - Math.random());
+
+            const grid = document.getElementById('memory-grid');
+            grid.innerHTML = '';
+            deck.forEach(cardData => {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'card card-perspective h-28 sm:h-32 cursor-pointer';
+                cardEl.dataset.id = cardData.id;
+                cardEl.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-front"><div class="card-front-inner"><span class="text-2xl">🏛️</span></div></div>
+                        <div class="card-back"><div class="card-back-frame"><span class="text-3xl">${cardData.icon}</span><span class="text-[10px] font-bold text-amber-950">${cardData.title}</span></div></div>
+                    </div>
+                `;
+                cardEl.onclick = () => flipMemoryCard(cardEl, cardData, pairCount, diff);
+                grid.appendChild(cardEl);
+            });
+
+            memTimerInterval = setInterval(() => {
+                memTimerSeconds++;
+                const mins = String(Math.floor(memTimerSeconds / 60)).padStart(2, '0');
+                const secs = String(memTimerSeconds % 60).padStart(2, '0');
+                document.getElementById('mem-timer').innerText = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function flipMemoryCard(cardEl, cardData, pairCount, diffTier) {
+            if (cardEl.classList.contains('flipped') || memFlippedCards.length >= 2) return;
+
+            playSound('flip');
+            cardEl.classList.add('flipped');
+            memFlippedCards.push({ el: cardEl, data: cardData });
+
+            if (memFlippedCards.length === 2) {
+                memMoves++;
+                document.getElementById('mem-moves').innerText = memMoves;
+
+                const [first, second] = memFlippedCards;
+                if (first.data.id === second.data.id) {
+                    playSound('match');
+                    memMatchedCount++;
+                    document.getElementById('mem-pairs').innerText = `${memMatchedCount} / ${pairCount}`;
+                    memFlippedCards = [];
+
+                    if (memMatchedCount === pairCount) {
+                        clearInterval(memTimerInterval);
+                        awardStars(diffTier);
+                        const finalTime = document.getElementById('mem-timer').innerText;
+                        userState.highscores['history-memory'] = finalTime;
+                        saveUserProgress();
+                        setTimeout(() => showToast(`Gefeliciteerd! Alle paren gevonden in ${finalTime}! +1 Ster ⭐`, 'fa-trophy'), 400);
+                    }
+                } else {
+                    playSound('error');
+                    setTimeout(() => {
+                        first.el.classList.remove('flipped');
+                        second.el.classList.remove('flipped');
+                        memFlippedCards = [];
+                    }, 1000);
+                }
+            }
+        }
+
+        /* ==========================================
+           SPEL 2: GESCHIEDENIS TIJDLIJN
+           ========================================== */
+        const timelineDatabase = [
+            { year: -2500, title: 'Bouw van de Grote Piramide in Gizeh' },
+            { year: -753, title: 'Stichting van de stad Rome volgens de legende' },
+            { year: 800, title: 'Karel de Grote gekroond tot Keizer van het Westen' },
+            { year: 1492, title: 'Columbus bereikt Amerika' },
+            { year: 1602, title: 'Oprichting van de Verenigde Oostindische Compagnie (VOC)' },
+            { year: 1789, title: 'Begin van de Franse Revolutie' },
+            { year: 1945, title: 'Einde van de Tweede Wereldoorlog' },
+            { year: 1969, title: 'Eerste mens zet voet op de Maan' }
+        ];
+
+        let currentTimelineItems = [];
+
+        function initTimelineGame() {
+            const diff = document.getElementById('timeline-difficulty').value;
+            let count = 4;
+            if (diff === 'medium') count = 6;
+            else if (diff === 'hard') count = 8;
+
+            currentTimelineItems = timelineDatabase.slice(0, count).sort(() => 0.5 - Math.random());
+            renderTimeline();
+        }
+
+        function renderTimeline() {
+            const container = document.getElementById('timeline-container');
+            container.innerHTML = '';
+            currentTimelineItems.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'timeline-item bg-amber-50 border-2 border-amber-300 p-3 rounded-2xl flex items-center justify-between shadow-sm';
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="w-6 h-6 rounded-full bg-amber-200 text-amber-900 flex items-center justify-center font-bold text-xs">${index + 1}</span>
+                        <span class="text-xs font-bold text-amber-950">${item.title}</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button onclick="moveTimelineItem(${index}, -1)" class="w-7 h-7 bg-amber-200 hover:bg-amber-300 text-amber-900 rounded-lg text-xs font-bold"><i class="fa-solid fa-arrow-up"></i></button>
+                        <button onclick="moveTimelineItem(${index}, 1)" class="w-7 h-7 bg-amber-200 hover:bg-amber-300 text-amber-900 rounded-lg text-xs font-bold"><i class="fa-solid fa-arrow-down"></i></button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function moveTimelineItem(index, direction) {
+            const target = index + direction;
+            if (target < 0 || target >= currentTimelineItems.length) return;
+            playSound('flip');
+            const temp = currentTimelineItems[index];
+            currentTimelineItems[index] = currentTimelineItems[target];
+            currentTimelineItems[target] = temp;
+            renderTimeline();
+        }
+
+        function checkTimelineSolution() {
+            let correct = true;
+            for (let i = 0; i < currentTimelineItems.length - 1; i++) {
+                if (currentTimelineItems[i].year > currentTimelineItems[i + 1].year) {
+                    correct = false;
+                    break;
+                }
+            }
+            if (correct) {
+                playSound('success');
+                const diff = document.getElementById('timeline-difficulty').value;
+                awardStars(diff);
+                userState.highscores['history-timeline'] += 100;
+                saveUserProgress();
+                showToast("Perfect! Tijdlijn is helemaal correct geordend! +1 Ster ⭐", "fa-circle-check");
+            } else {
+                playSound('error');
+                showToast("Helaas, de volgorde klopt nog niet helemaal. Probeer opnieuw!", "fa-triangle-exclamation");
+            }
+        }
+
+        /* ==========================================
+           SPEL 3: AARDRIJKSKUNDE QUIZ
+           ========================================== */
+        const geoQuizDatabase = [
+            { q: "Wat is de hoofdstad van Frankrijk?", options: ["Lyon", "Parijs", "Marseille", "Nice"], answer: 1, fact: "Parijs staat bekend als de Stad van het Licht.", icon: "🗼" },
+            { q: "Welk continent is het grootst in oppervlakte?", options: ["Afrika", "Noord-Amerika", "Azië", "Europa"], answer: 2, fact: "Azië beslaat meer dan 30% van de totale landoppervlakte op aarde.", icon: "🌏" },
+            { q: "Wat is de langste rivier ter wereld?", options: ["Nijl", "Amazone", "Donau", "Rijn"], answer: 1, fact: "De Amazone stroomt door het grootste regenwoud ter wereld.", icon: "🌊" },
+            { q: "In welk land liggen de beroemde piramides van Gizeh?", options: ["Griekenland", "Egypte", "Mexico", "Peru"], answer: 1, fact: "Egypte heeft meer dan 100 oude piramides.", icon: "🏜️" },
+            { q: "Wat is de hoofdstad van Japan?", options: ["Kyoto", "Osaka", "Tokio", "Hiroshima"], answer: 2, fact: "Groot-Tokio is de dichtstbevolkte metropool ter wereld.", icon: "🗾" }
+        ];
+
+        let geoIndex = 0;
+        let geoScore = 0;
+
+        function initGeoQuiz() {
+            geoIndex = 0;
+            geoScore = 0;
+            document.getElementById('geo-score').innerText = '0 pt';
+            renderGeoQuestion();
+        }
+
+        function renderGeoQuestion() {
+            const factBox = document.getElementById('geo-fact-box');
+            factBox.classList.add('hidden');
+
+            const qData = geoQuizDatabase[geoIndex % geoQuizDatabase.length];
+            document.getElementById('geo-q-num').innerText = `${geoIndex + 1} / 5`;
+            document.getElementById('geo-icon').innerText = qData.icon;
+            document.getElementById('geo-question').innerText = qData.q;
+
+            const optsContainer = document.getElementById('geo-options');
+            optsContainer.innerHTML = '';
+            qData.options.forEach((optText, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'py-3.5 px-4 bg-teal-50 hover:bg-teal-100 border-2 border-teal-200 text-teal-950 font-bold rounded-2xl text-xs sm:text-sm text-left transition-all flex items-center justify-between';
+                btn.innerHTML = `<span>${optText}</span><i class="fa-regular fa-circle text-teal-400"></i>`;
+                btn.onclick = () => answerGeoQuestion(idx, qData.answer, qData.fact);
+                optsContainer.appendChild(btn);
+            });
+        }
+
+        function answerGeoQuestion(selectedIdx, correctIdx, fact) {
+            const opts = document.getElementById('geo-options').children;
+            for (let btn of opts) btn.disabled = true;
+
+            if (selectedIdx === correctIdx) {
+                playSound('success');
+                opts[selectedIdx].classList.add('bg-emerald-200', 'border-emerald-500');
+                geoScore += 50;
+                document.getElementById('geo-score').innerText = geoScore + ' pt';
+            } else {
+                playSound('error');
+                opts[selectedIdx].classList.add('bg-red-100', 'border-red-400');
+                opts[correctIdx].classList.add('bg-emerald-100', 'border-emerald-400');
+            }
+
+            document.getElementById('geo-fact-text').innerText = fact;
+            document.getElementById('geo-fact-box').classList.remove('hidden');
+        }
+
+        function nextGeoQuestion() {
+            geoIndex++;
+            if (geoIndex >= 5) {
+                const diff = document.getElementById('geo-difficulty').value;
+                awardStars(diff);
+                userState.highscores['geo-quiz'] = Math.max(userState.highscores['geo-quiz'], geoScore);
+                saveUserProgress();
+                showToast(`Expeditie Voltooid! Je behaalde ${geoScore} punten. +1 Ster ⭐`, 'fa-award');
+                initGeoQuiz();
+            } else {
+                renderGeoQuestion();
+            }
+        }
+
+        /* ==========================================
+           SPEL 4: VLAGGEN SPEEDRUN
+           ========================================== */
+        const flagsData = [
+            { flag: "🇳🇱 Nederland", capital: "Amsterdam" },
+            { flag: "🇧🇪 België", capital: "Brussel" },
+            { flag: "🇩🇪 Duitsland", capital: "Berlijn" },
+            { flag: "🇪🇸 Spanje", capital: "Madrid" },
+            { flag: "🇮🇹 Italië", capital: "Rome" },
+            { flag: "🇬🇧 Verenigd Koninkrijk", capital: "Londen" }
+        ];
+
+        let selectedFlag = null;
+        let selectedCapital = null;
+        let flagsMatchedCount = 0;
+
+        function initFlagsGame() {
+            selectedFlag = null;
+            selectedCapital = null;
+            flagsMatchedCount = 0;
+            document.getElementById('flags-score').innerText = '0';
+
+            const leftCol = document.getElementById('flags-left-column');
+            const rightCol = document.getElementById('flags-right-column');
+            leftCol.innerHTML = '';
+            rightCol.innerHTML = '';
+
+            const shuffledFlags = [...flagsData].sort(() => 0.5 - Math.random());
+            const shuffledCaps = [...flagsData].sort(() => 0.5 - Math.random());
+
+            shuffledFlags.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full py-3 px-4 bg-emerald-50 hover:bg-emerald-100 border-2 border-emerald-300 text-emerald-950 font-bold rounded-2xl text-xs text-left transition-all';
+                btn.innerText = item.flag;
+                btn.onclick = () => selectFlagItem(btn, item);
+                leftCol.appendChild(btn);
+            });
+
+            shuffledCaps.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full py-3 px-4 bg-teal-50 hover:bg-teal-100 border-2 border-teal-300 text-teal-950 font-bold rounded-2xl text-xs text-left transition-all';
+                btn.innerText = item.capital;
+                btn.onclick = () => selectCapitalItem(btn, item);
+                rightCol.appendChild(btn);
+            });
+        }
+
+        function selectFlagItem(btn, item) {
+            playSound('flip');
+            const leftCol = document.getElementById('flags-left-column');
+            for (let child of leftCol.children) child.classList.remove('ring-4', 'ring-emerald-500');
+            btn.classList.add('ring-4', 'ring-emerald-500');
+            selectedFlag = { btn, item };
+            checkFlagMatch();
+        }
+
+        function selectCapitalItem(btn, item) {
+            playSound('flip');
+            const rightCol = document.getElementById('flags-right-column');
+            for (let child of rightCol.children) child.classList.remove('ring-4', 'ring-teal-500');
+            btn.classList.add('ring-4', 'ring-teal-500');
+            selectedCapital = { btn, item };
+            checkFlagMatch();
+        }
+
+        function checkFlagMatch() {
+            if (selectedFlag && selectedCapital) {
+                if (selectedFlag.item.capital === selectedCapital.item.capital) {
+                    playSound('match');
+                    selectedFlag.btn.disabled = true;
+                    selectedCapital.btn.disabled = true;
+                    selectedFlag.btn.classList.add('opacity-40', 'bg-emerald-200');
+                    selectedCapital.btn.classList.add('opacity-40', 'bg-teal-200');
+                    flagsMatchedCount++;
+                    document.getElementById('flags-score').innerText = flagsMatchedCount;
+
+                    if (flagsMatchedCount === flagsData.length) {
+                        const diff = document.getElementById('flags-difficulty').value;
+                        awardStars(diff);
+                        userState.highscores['geo-flags'] += 100;
+                        saveUserProgress();
+                        showToast("Geweldig! Alle vlaggen gekoppeld! +1 Ster ⭐", "fa-flag");
+                    }
+                } else {
+                    playSound('error');
+                }
+                selectedFlag = null;
+                selectedCapital = null;
+            }
+        }
+
+        /* ==========================================
+           SPEL 5: LATIJN CITATEN
+           ========================================== */
+        const latinQuotesDatabase = [
+            { quote: "Veni, vidi, vici", hint: "Ik kwam, ik zag, ik overwon", answer: "Julius Caesar", options: ["Julius Caesar", "Cicero", "Seneca", "Nero"], fact: "Uitgesproken na de snelle overwinning in de Slag bij Zela." },
+            { quote: "Errare humanum est", hint: "Vergissen is menselijk", answer: "Seneca", options: ["Seneca", "Augustus", "Trajanus", "Virgilius"], fact: "Een van de meest gebruikte filosofische spreekwoorden." },
+            { quote: "Carpe diem", hint: "Pluk de dag", answer: "Horatius", options: ["Horatius", "Ovidius", "Marcus Aurelius", "Cicero"], fact: "Moedigt aan om volop van het heden te genieten." }
+        ];
+
+        let latIndex = 0;
+        let latScore = 0;
+
+        function initLatinQuotes() {
+            latIndex = 0;
+            latScore = 0;
+            document.getElementById('lat-score').innerText = '0 pt';
+            renderLatinQuote();
+        }
+
+        function renderLatinQuote() {
+            document.getElementById('lat-fact-box').classList.add('hidden');
+            const data = latinQuotesDatabase[latIndex % latinQuotesDatabase.length];
+            document.getElementById('lat-q-num').innerText = `${latIndex + 1} / 3`;
+            document.getElementById('lat-quote-text').innerText = `"${data.quote}"`;
+            document.getElementById('lat-hint').innerText = `Hint: ${data.hint}`;
+
+            const opts = document.getElementById('lat-options');
+            opts.innerHTML = '';
+            data.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'py-3.5 px-4 bg-purple-50 hover:bg-purple-100 border-2 border-purple-300 text-purple-950 font-bold rounded-2xl text-xs sm:text-sm text-left transition-all';
+                btn.innerText = opt;
+                btn.onclick = () => answerLatinQuote(btn, opt, data.answer, data.fact);
+                opts.appendChild(btn);
+            });
+        }
+
+        function answerLatinQuote(btn, selected, correct, fact) {
+            const all = document.getElementById('lat-options').children;
+            for (let b of all) b.disabled = true;
+
+            if (selected === correct) {
+                playSound('success');
+                btn.classList.add('bg-emerald-200', 'border-emerald-500');
+                latScore += 60;
+                document.getElementById('lat-score').innerText = latScore + ' pt';
+            } else {
+                playSound('error');
+                btn.classList.add('bg-red-100', 'border-red-400');
+            }
+            document.getElementById('lat-fact-text').innerText = fact;
+            document.getElementById('lat-fact-box').classList.remove('hidden');
+        }
+
+        function nextLatinQuote() {
+            latIndex++;
+            if (latIndex >= 3) {
+                const diff = document.getElementById('latin-difficulty').value;
+                awardStars(diff);
+                userState.highscores['latin-quotes'] = Math.max(userState.highscores['latin-quotes'], latScore);
+                saveUserProgress();
+                showToast(`Dicta Romana voltooid! Score: ${latScore} pt. +1 Ster ⭐`, 'fa-scroll');
+                initLatinQuotes();
+            } else {
+                renderLatinQuote();
+            }
+        }
+
+        /* ==========================================
+           SPEL 6: LATIJN VOCABULARIUM MATCH
+           ========================================== */
+        const vocabData = [
+            { latin: "Amicus", dutch: "Vriend" },
+            { latin: "Aqua", dutch: "Water" },
+            { latin: "Vita", dutch: "Leven" },
+            { latin: "Rex", dutch: "Koning" },
+            { latin: "Terra", dutch: "Aarde / Land" }
+        ];
+
+        let selLat = null;
+        let selDut = null;
+        let vocabCount = 0;
+
+        function initVocabGame() {
+            selLat = null;
+            selDut = null;
+            vocabCount = 0;
+            document.getElementById('vocab-score').innerText = '0';
+
+            const leftCol = document.getElementById('vocab-left-column');
+            const rightCol = document.getElementById('vocab-right-column');
+            leftCol.innerHTML = '';
+            rightCol.innerHTML = '';
+
+            const shuffledL = [...vocabData].sort(() => 0.5 - Math.random());
+            const shuffledD = [...vocabData].sort(() => 0.5 - Math.random());
+
+            shuffledL.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full py-3 px-4 bg-purple-50 hover:bg-purple-100 border-2 border-purple-300 text-purple-950 font-bold rounded-2xl text-xs text-left transition-all';
+                btn.innerText = item.latin;
+                btn.onclick = () => {
+                    playSound('flip');
+                    for (let c of leftCol.children) c.classList.remove('ring-4', 'ring-purple-500');
+                    btn.classList.add('ring-4', 'ring-purple-500');
+                    selLat = { btn, item };
+                    checkVocabMatch();
+                };
+                leftCol.appendChild(btn);
+            });
+
+            shuffledD.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full py-3 px-4 bg-indigo-50 hover:bg-indigo-100 border-2 border-indigo-300 text-indigo-950 font-bold rounded-2xl text-xs text-left transition-all';
+                btn.innerText = item.dutch;
+                btn.onclick = () => {
+                    playSound('flip');
+                    for (let c of rightCol.children) c.classList.remove('ring-4', 'ring-indigo-500');
+                    btn.classList.add('ring-4', 'ring-indigo-500');
+                    selDut = { btn, item };
+                    checkVocabMatch();
+                };
+                rightCol.appendChild(btn);
+            });
+        }
+
+        function checkVocabMatch() {
+            if (selLat && selDut) {
+                if (selLat.item.latin === selDut.item.latin) {
+                    playSound('match');
+                    selLat.btn.disabled = true;
+                    selDut.btn.disabled = true;
+                    selLat.btn.classList.add('opacity-40', 'bg-purple-200');
+                    selDut.btn.classList.add('opacity-40', 'bg-indigo-200');
+                    vocabCount++;
+                    document.getElementById('vocab-score').innerText = vocabCount;
+
+                    if (vocabCount === vocabData.length) {
+                        const diff = document.getElementById('vocab-difficulty').value;
+                        awardStars(diff);
+                        userState.highscores['latin-vocab'] += 100;
+                        saveUserProgress();
+                        showToast("Uitstekend! Woordenschat succesvol gekoppeld! +1 Ster ⭐", "fa-book");
+                    }
+                } else {
+                    playSound('error');
+                }
+                selLat = null;
+                selDut = null;
+            }
+        }
+
+        /* ==========================================
+           SHOP MODAL LOGIC
+           ========================================== */
+        const shopItems = [
+            { id: 'card_caesar', title: 'Julius Caesar Kaart', cost: { bronze: 2, silver: 1, gold: 0 }, icon: '🏛️', desc: 'Machtige Romeinse Veldheer en Staatsman' },
+            { id: 'card_columbus', title: 'Ontdekkingsreiziger Kaart', cost: { bronze: 3, silver: 2, gold: 0 }, icon: '⛵', desc: 'Beroemde zeevaarder van de Renaissance' },
+            { id: 'card_pyramid', title: 'Gouden Piramide Kaart', cost: { bronze: 5, silver: 3, gold: 1 }, icon: '📐', desc: 'Eeuwenoud wereldwonder van Egypte' }
+        ];
+
+        function openShopModal() {
+            document.getElementById('shop-bronze').innerText = userState.stars.bronze;
+            document.getElementById('shop-silver').innerText = userState.stars.silver;
+            document.getElementById('shop-gold').innerText = userState.stars.gold;
+
+            const grid = document.getElementById('shop-cards-grid');
+            grid.innerHTML = '';
+
+            shopItems.forEach(item => {
+                const isUnlocked = userState.unlockedShopCards.includes(item.id);
+                const card = document.createElement('div');
+                card.className = `p-4 rounded-2xl border-2 ${isUnlocked ? 'bg-amber-100 border-amber-400' : 'bg-white border-amber-200'} flex flex-col justify-between gap-3 shadow-sm`;
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="text-3xl">${item.icon}</div>
+                        <div>
+                            <h5 class="font-bold text-xs text-amber-950">${item.title}</h5>
+                            <p class="text-[10px] text-slate-500">${item.desc}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between pt-2 border-t border-amber-200">
+                        <span class="text-[10px] font-bold text-slate-600">Prijs: 🥉${item.cost.bronze} 🥈${item.cost.silver}</span>
+                        ${isUnlocked 
+                            ? `<span class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full"><i class="fa-solid fa-check mr-1"></i> Ontgrendeld</span>`
+                            : `<button onclick="buyShopCard('${item.id}')" class="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs">Koop Kaart</button>`
+                        }
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            document.getElementById('modal-shop').classList.remove('hidden');
+        }
+
+        function closeShopModal() {
+            document.getElementById('modal-shop').classList.add('hidden');
+        }
+
+        function buyShopCard(cardId) {
+            const item = shopItems.find(i => i.id === cardId);
+            if (!item) return;
+
+            if (userState.stars.bronze >= item.cost.bronze && userState.stars.silver >= item.cost.silver) {
+                userState.stars.bronze -= item.cost.bronze;
+                userState.stars.silver -= item.cost.silver;
+                userState.unlockedShopCards.push(cardId);
+                saveUserProgress();
+                playSound('success');
+                openShopModal();
+                showToast("Kaart succesvol gekocht!", "fa-cart-shopping");
+            } else {
+                playSound('error');
+                showToast("Niet genoeg sterren om deze kaart te kopen!", "fa-circle-xmark");
+            }
+        }
+
+        /* ==========================================
+           INITIALIZATION ON LOAD
+           ========================================== */
+        window.onload = function() {
+            loadUserProgress();
+            showScreen('hub');
+        };
+    </script>
+</body>
+</html>
